@@ -78,3 +78,41 @@ Start a proxy to the Kubernetes API server on the default port (8001):
 kubectl proxy
 ```
 Open a web browser and navigate to the dashboard at http://localhost:8001/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy/.
+
+## Install Træfik as Ingress Controller for Kubernetes
+
+The [Kubernetes Ingress API](https://kubernetes.io/docs/concepts/services-networking/ingress/) manages external access to services in a cluster. This can provide
+load balancing, TLS termination and name-based virtual hosting.
+
+In order for ingress to work, the cluster must have a running Ingress Controller.
+One alternative is [Træfik](https://traefik.io/).
+
+### Helm
+You will need [helm](https://github.com/kubernetes/helm) installed to deploy packages to your Kubernetes cluster.
+Ensure that you have the same version of helm on client and server:
+```
+helm version
+```
+If not, upgrade:
+```
+helm init --upgrade
+```
+
+### Using Let's Encrypt for automated TLS support
+If you are not running a production system, Træfik supports the [ACME](https://github.com/ietf-wg-acme/acme/)
+protocol used by [Let's Encrypt](https://letsencrypt.org/). This means that you can publish services in
+your Kubernetes cluster with TLS support automatically and for free.
+
+### Sample installation
+```
+helm install --name traefik --namespace kube-system --set \
+ssl.enabled=true \
+,ssl.enforced=true \
+,acme.enabled=true \
+,acme.challengeType=http-01 \
+,acme.email=<youremailaddress> \
+,accessLogs.enabled=true \
+stable/traefik
+```
+Follow the notes for additional instructions in verifying the result and retrieving the external IP. This should be
+added to a DNS record. 
